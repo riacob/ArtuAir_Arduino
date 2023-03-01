@@ -1,33 +1,55 @@
 /**
  * @file main.cpp
  * @author your name (you@domain.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-02-27
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include <Arduino.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 #include "hardware.h"
 #include "bme680.h"
 #include "rtc.h"
-#include "ssd1306.h"
 
 BME680 bme680;
 RTC rtc;
-SSD1306 ssd1306;
+Adafruit_SSD1306 oled(128, 64, &Wire, -1);
 
-void setup() {
-  // Begin UART port for debugging
-  Serial.begin(BAUDRATE);
+void setup()
+{
+  // Begin UART ports
+  Serial.begin(BAUDRATE_SERIAL);
+  Serial1.begin(BAUDRATE_SERIALBT);
+  // Begin OLED
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3D))
+  {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;)
+      ; // Don't proceed, loop forever
+  }
   // Print welcome screen
+  oled.clearDisplay();
+  oled.print("BortoDux");
+  oled.display();
   Serial.println("ArtuAir - Air Quality Monitor");
   Serial.println("Malignani Udine");
   Serial.println("5ELIA A.S. 2022/2023");
   Serial.println("Welcome!");
 }
 
-void loop() {
+void loop()
+{
+  if (Serial1.available())
+  {
+    String str = Serial1.readString();
+    Serial.println(str);
+  }
 }

@@ -11,6 +11,7 @@
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
-#define BAUDRATE 115200
+#define BAUDRATE_SERIAL 115200
+#define BAUDRATE_SERIALBT 38400
 
 #endif
