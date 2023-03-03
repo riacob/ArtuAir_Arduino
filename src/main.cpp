@@ -18,7 +18,7 @@
 #include "bme680.h"
 #include "rtc.h"
 
-BME680 bme680;
+BME680 bme680(I2C_BME680_ADD);
 RTC rtc;
 Adafruit_SSD1306 oled(128, 64, &Wire, -1);
 
@@ -29,7 +29,7 @@ void setup()
   Serial1.begin(BAUDRATE_SERIALBT);
   // Begin OLED
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3D))
+  if (!oled.begin(SSD1306_SWITCHCAPVCC, I2C_OLED_ADD))
   {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;)
