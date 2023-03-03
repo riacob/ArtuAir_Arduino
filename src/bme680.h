@@ -95,6 +95,47 @@ public:
     };
 
     /**
+     * @brief Possible heater set points
+     *
+     */
+    enum class HeaterSetPoints
+    {
+        point_0 = 0,
+        point_1 = 1,
+        point_2 = 2,
+        point_3 = 3,
+        point_4 = 4,
+        point_5 = 5,
+        point_6 = 6,
+        point_7 = 7,
+        point_8 = 8,
+        point_9 = 9,
+    };
+
+    // TODO
+    /**
+     * @brief Possible wait times in milliseconds between heating and reading of the gas sensor
+     *
+     */
+    enum class GasWaitMillis
+    {
+        millis_0 = 0,
+        millis_1 = 1,
+        millis_2 = 2,
+        millis_3 = 3,
+        millis_4 = 4,
+        millis_63 = 63
+    };
+
+    enum class HeatRanges
+    {
+        range_0 = 0,
+        range_1 = 1,
+        range_2 = 2,
+        range_3 = 3
+    };
+
+    /**
      * @brief Structure containing the data read by the sensor
      *
      */
@@ -112,7 +153,6 @@ public:
         // Gas data
         float gasResistance;
         float gasResistanceRange;
-
     } BMEData;
 
     typedef struct
@@ -134,8 +174,20 @@ public:
 
         // Heater is stable if true
         bool heater_stability;
-
     } BMEStatus;
+
+    /**
+     * @brief Calibration parameters to be read from the sensor
+     * 
+     */
+    typedef struct
+    {
+        uint8_t par_g1;
+        uint16_t par_g2;
+        uint8_t par_g3;
+        HeatRanges res_heat_range;
+        char res_heat_val;
+    } BMEResistanceParameters;
 
     /**
      * @brief Structure containing heater set points
@@ -146,16 +198,16 @@ public:
         // Heater current
         uint8_t current;
 
-        // Heater resistance
-        uint8_t resistance;
+        // Heater resistance parameters
+        BMEResistanceParameters resistance;
 
         // Heater wait time before measurements, in milliseconds
         // Value boundaries: 0 to 63
-        uint8_t gas_wait;
+        GasWaitMillis gas_wait;
 
         // Heater wait time multiplication factor
         // Value boundaries: 0 to 3
-        uint8_t gas_wait_multiplier;
+        HeaterTimeMultipliers gas_wait_multiplier;
     } BMESetPointConfig;
 
     /**
@@ -166,19 +218,19 @@ public:
     {
         // Temperature oversampling
         // Value boundaries: 0 to 5
-        uint8_t osrs_t;
+        OversamplingMultipliers osrs_t;
 
         // Pressure oversampling
         // Value boundaries: 0 to 5
-        uint8_t osrs_p;
+        OversamplingMultipliers osrs_p;
 
         // Humidity oversampling
         // Value boundaries: 0 to 5
-        uint8_t osrs_h;
+        OversamplingMultipliers osrs_h;
 
         // Filter coefficient
         // Value boundaries: 0 to 7
-        uint8_t filter;
+        FilterCoefficients filter;
 
         // Enable gas measurements
         bool run_gas;
@@ -186,12 +238,13 @@ public:
         // Select heater set point from BMESetPointConfig
         // Value boundaries: 0 to 9
         BMESetPointConfig set_point_cfg[10];
-        uint8_t set_point;
-
+        HeaterSetPoints set_point;
     } BMEConfig;
+
 private:
-uint8_t i2cAdd;
-BMEConfig config;
+    uint8_t i2cAdd;
+    BMEConfig *config;
+
 public:
     /**
      * @brief Constructs a new BME680 object
@@ -199,38 +252,44 @@ public:
      * @param i2cAddress: The I2C address of the BME680 sensor (usually 0x76 or 0x77)
      */
     BME680(uint8_t i2cAddress);
+
     /**
      * @brief Sets a custom configuration
-     * 
+     *
      * @param cfg: The custom configuration
      */
-    void setConfig(BMEConfig* cfg);
+    void setConfig(BMEConfig *cfg);
+
     /**
      * @brief Sets the default configuration
-     * 
+     *
      */
     void setDefaultConfig();
+
     /**
      * @brief Writes the configuration to EEPROM
-     * 
+     *
      */
     void writeConfig(uint16_t addressOffset = 0);
+
     /**
      * @brief Reads the configuration from EEPROM
-     * 
+     *
      */
     void readConfig(uint16_t addressOffset = 0);
+
     /**
      * @brief Starts conversion of read data
-     * 
+     *
      */
     void startConversion();
+
     /**
      * @brief Reads data from the sensor
-     * 
+     *
      * @param data: The sensor's data (will be written at the pointed address)
      */
-    void readData(BMEData* data);
+    void readData(BMEData *data);
 };
 
 #endif

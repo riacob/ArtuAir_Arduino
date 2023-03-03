@@ -27,18 +27,16 @@ void setup()
   // Begin UART ports
   Serial.begin(BAUDRATE_SERIAL);
   Serial1.begin(BAUDRATE_SERIALBT);
-  // Begin OLED
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+
+  // Begin OLED, generating 3.3v internally
   if (!oled.begin(SSD1306_SWITCHCAPVCC, I2C_OLED_ADD))
   {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;)
-      ; // Don't proceed, loop forever
+      ;
   }
+
   // Print welcome screen
-  oled.clearDisplay();
-  oled.print("BortoDux");
-  oled.display();
   Serial.println("ArtuAir - Air Quality Monitor");
   Serial.println("Malignani Udine");
   Serial.println("5ELIA A.S. 2022/2023");
