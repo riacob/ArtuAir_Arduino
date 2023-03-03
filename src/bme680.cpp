@@ -27,3 +27,14 @@ void BME680::setDefaultConfig() {
     config->set_point = HeaterSetPoints::point_0;
 }
 
+float BME680::calculateHeaterResistance(BMEResistanceParameters *rParam, double targetTemp, double ambientTemp){
+    //see datasheet for further details
+    float var1 = (rParam->par_g1 / 16) + 49.0;
+    float var2 = ((rParam->par_g2 / 32768.0) * 0.0005) + 0.00235;
+    float var3 = rParam->par_g3 / 1024.0;
+    float var4 = var1 * (1.0 + (var2 * targetTemp));
+    float var5 = var4 + (var3 * ambientTemp);
+
+    return (3.4 * ((var5 * (4.0 / rParam->res_heat_range)) * (1.0 / (1.0 + rParam->res_heat_val * 0.002)) -25 ));
+}
+

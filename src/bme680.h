@@ -127,13 +127,13 @@ public:
         millis_63 = 63
     };
 
-    enum class HeatRanges
+    /*enum class HeatRanges
     {
         range_0 = 0,
         range_1 = 1,
         range_2 = 2,
         range_3 = 3
-    };
+    };*/
 
     /**
      * @brief Structure containing the data read by the sensor
@@ -177,15 +177,20 @@ public:
     } BMEStatus;
 
     /**
-     * @brief Calibration parameters to be read from the sensor
+     * @brief Calibration parameters to be read from the sensor to calculate the final heater resistance
      * 
      */
     typedef struct
     {
+        //calibration parameters
         uint8_t par_g1;
         uint16_t par_g2;
         uint8_t par_g3;
-        HeatRanges res_heat_range;
+
+        //Heater range
+        uint8_t res_heat_range;
+
+        //Heater resistance correction factor
         char res_heat_val;
     } BMEResistanceParameters;
 
@@ -195,8 +200,8 @@ public:
      */
     typedef struct
     {
-        // Heater current
-        uint8_t current;
+        // Heater current (optional)
+        //uint8_t current;
 
         // Heater resistance parameters
         BMEResistanceParameters resistance;
@@ -235,6 +240,9 @@ public:
         // Enable gas measurements
         bool run_gas;
 
+        // Target temperature of the heater
+        float target_temp;
+
         // Select heater set point from BMESetPointConfig
         // Value boundaries: 0 to 9
         BMESetPointConfig set_point_cfg[10];
@@ -244,6 +252,16 @@ public:
 private:
     uint8_t i2cAdd;
     BMEConfig *config;
+
+    /**
+     * @brief Calculate heater resistance based on calibration parameters and desired temperature range
+     * 
+     * @param rParam: The resistance calibration parameters
+     * @param targetTemp: The target temperatured (depending on the desired gas)
+     * @param ambientTemp: The current ambient temperature (obtained by reading it trough the sensor)
+     * @return float: The calculated heater resistance 
+     */
+    float calculateHeaterResistance(BMEResistanceParameters *rParam, double targetTemp, double ambientTemp);
 
 public:
     /**

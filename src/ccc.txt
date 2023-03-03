@@ -1,6 +1,7 @@
     // 1. Read gas sensor calibration data
-    // 2. Calculate res_heat_x and store it in the config
-    // 4. Write configuration
+    // 2. Read sensor temperature (gas measurement shoud be disabled)
+    // 3. Calculate res_heat_x and store it in the config
+    // 4 . Write complete configuration
     /*
     config->set_point_cfg[0].current = 255;
     config->set_point_cfg[0].gas_wait = GasWaitMillis::millis_63;
