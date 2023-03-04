@@ -17,7 +17,7 @@
 #include "ssd1306.h"
 
 BME680 bme680(I2C_BME680_ADD);
-DS3231 rtc;
+DS3231 rtc(I2C_DS3231_ADD);
 SSD1306 oled;
 
 void setupGPIO();
@@ -28,6 +28,7 @@ void setup()
 {
   setupGPIO();
   setupUART();
+  setupOLED();
   oled.printScreen(SSD1306::Screens::screen_welcome);
 }
 
