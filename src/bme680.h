@@ -199,15 +199,15 @@ public:
      */
     typedef struct
     {
-        //calibration parameters
+        // calibration parameters
         uint8_t par_g1;
         uint16_t par_g2;
         uint8_t par_g3;
 
-        //Heater range
+        // Heater range
         uint8_t res_heat_range;
 
-        //Heater resistance correction factor
+        // Heater resistance correction factor
         char res_heat_val;
     } BMEResistanceParameters;
 
@@ -217,7 +217,7 @@ public:
     typedef struct
     {
         // Heater current (optional)
-        //uint8_t current;
+        // uint8_t current;
 
         // Heater resistance parameters
         BMEResistanceParameters resistance;
@@ -270,11 +270,11 @@ private:
 
     /**
      * @brief Calculate heater resistance based on calibration parameters and desired temperature range
-     * 
+     *
      * @param rParam: The resistance calibration parameters
      * @param targetTemp: The target temperatured (depending on the desired gas)
      * @param ambientTemp: The current ambient temperature (obtained by reading it trough the sensor)
-     * @return float: The calculated heater resistance 
+     * @return float: The calculated heater resistance
      */
     float calculateHeaterResistance(BMEResistanceParameters *rParam, double targetTemp, double ambientTemp);
 

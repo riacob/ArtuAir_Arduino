@@ -1,10 +1,10 @@
 /**
  * @file hardware.h
  * @authors Riccardo Iacob, Elia Zambelli Franz
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-02-27
- * 
+ *
  * @copyright Copyright (c) 2023
  */
 #ifndef HARDWARE_H
@@ -19,8 +19,8 @@
 #define I2C_EEPROM_ADD 0x57
 
 #define PIN_LED_GREEN 52
-#define PIN_LED_YELLOW 51 
-#define PIN_LED_RED 49 
+#define PIN_LED_YELLOW 51
+#define PIN_LED_RED 49
 #define PIN_LED_BLUE 47
 
 #endif
