@@ -1,12 +1,11 @@
 /**
  * @file bme680.h
- * @author your name (you@domain.com)
+ * @authors Riccardo Iacob, Elia Zambelli Franz, Samuele Mininel, Enrico Bravin
  * @brief
  * @version 0.1
  * @date 2023-02-27
  *
  * @copyright Copyright (c) 2023
- *
  */
 #ifndef BME680_H
 #define BME680_H
@@ -19,7 +18,6 @@ class BME680
 public:
     /**
      * @brief BME680 register addresses
-     *
      */
     enum class registerAddresses
     {
@@ -53,7 +51,6 @@ public:
     /**
      * @brief osrs_x settings
      * Oversampling multipliers for temperature, humidity, pressure
-     *
      */
     enum class OversamplingMultipliers
     {
@@ -68,7 +65,6 @@ public:
     /**
      * @brief filter settings
      * IIR filtering options
-     *
      */
     enum class FilterCoefficients
     {
@@ -84,7 +80,6 @@ public:
 
     /**
      * @brief Heater wait time multipliers
-     *
      */
     enum class HeaterTimeMultipliers
     {
@@ -96,7 +91,6 @@ public:
 
     /**
      * @brief Possible heater set points
-     *
      */
     enum class HeaterSetPoints
     {
@@ -115,7 +109,6 @@ public:
     // TODO
     /**
      * @brief Possible wait times in milliseconds between heating and reading of the gas sensor
-     *
      */
     enum class GasWaitMillis
     {
@@ -124,6 +117,32 @@ public:
         millis_2 = 2,
         millis_3 = 3,
         millis_4 = 4,
+        millis_5 = 4,
+        millis_6 = 6,
+        millis_7 = 7,
+        millis_8 = 8,
+        millis_9 = 9,
+        millis_10 = 10,
+        millis_11 = 11,
+        millis_12 = 12,
+        millis_13 = 13,
+        millis_14 = 14,
+        millis_15 = 15,
+        millis_16 = 16,
+        millis_17 = 17,
+        millis_18 = 18,
+        millis_19 = 19,
+        millis_20 = 20,
+        millis_21 = 21,
+        millis_22 = 22,
+        millis_23 = 23,
+        millis_24 = 24,
+        millis_25 = 25,
+        millis_26 = 26,
+        millis_27 = 27,
+        millis_28 = 28,
+        millis_29 = 29,
+        millis_30 = 30,
         millis_63 = 63
     };
 
@@ -137,7 +156,6 @@ public:
 
     /**
      * @brief Structure containing the data read by the sensor
-     *
      */
     typedef struct
     {
@@ -178,7 +196,6 @@ public:
 
     /**
      * @brief Calibration parameters to be read from the sensor to calculate the final heater resistance
-     * 
      */
     typedef struct
     {
@@ -196,7 +213,6 @@ public:
 
     /**
      * @brief Structure containing heater set points
-     *
      */
     typedef struct
     {
@@ -217,7 +233,6 @@ public:
 
     /**
      * @brief Structure containing the configuration of the sensor
-     *
      */
     typedef struct
     {
@@ -280,25 +295,21 @@ public:
 
     /**
      * @brief Sets the default configuration
-     *
      */
     void setDefaultConfig();
 
     /**
      * @brief Writes the configuration to EEPROM
-     *
      */
     void writeConfig(uint16_t addressOffset = 0);
 
     /**
      * @brief Reads the configuration from EEPROM
-     *
      */
     void readConfig(uint16_t addressOffset = 0);
 
     /**
      * @brief Starts conversion of read data
-     *
      */
     void startConversion();
 
