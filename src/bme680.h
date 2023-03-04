@@ -14,14 +14,17 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
+#define CONCAT_BYTES(msb, lsb) (((uint16_t)msb << 8) | (uint16_t)lsb)
+
 class BME680
 {
 public:
     /**
      * @brief BME680 register addresses
      */
-    enum class registerAddresses
+    enum RegisterAddresses
     {
+        ADD_VARIANT_ID = 0xF0,
         ADD_STATUS = 0x73,
         ADD_RESET = 0xE0,
         ADD_ID = 0xD0,
@@ -50,10 +53,108 @@ public:
     };
 
     /**
+     * @brief Indexes of elements in the calibration parameter array
+     * @deprecated
+     */
+    enum BMECalRegisterIndexes
+    {
+        // Temperature
+        IDX_T1_LSB = 31,
+        IDX_T1_MSB = 32,
+        IDX_T2_LSB = 0,
+        IDX_T2_MSB = 1,
+        IDX_T3 = 2,
+        // Pressure
+        IDX_P1_LSB = 4,
+        IDX_P1_MSB = 5,
+        IDX_P2_LSB = 6,
+        IDX_P2_MSB = 7,
+        IDX_P3 = 8,
+        IDX_P4_LSB = 10,
+        IDX_P4_MSB = 11,
+        IDX_P5_LSB = 12,
+        IDX_P5_MSB = 13,
+        IDX_P6 = 15,
+        IDX_P7 = 14,
+        IDX_P8_LSB = 18,
+        IDX_P8_MSB = 19,
+        IDX_P9_LSB = 20,
+        IDX_P9_MSB = 21,
+        IDX_P10 = 22,
+        // Humidity
+        IDX_H1_LSB = 24, // weird
+        IDX_H1_MSB = 25,
+        IDX_H2_LSB = 24, // weird
+        IDX_H2_MSB = 23,
+        IDX_H3 = 26,
+        IDX_H4 = 27,
+        IDX_H5 = 28,
+        IDX_H6 = 29,
+        IDX_H7 = 30,
+        // Gas
+        IDX_GH1 = 35,
+        IDX_GH2_LSB = 33,
+        IDX_GH2_MSB = 34,
+        IDX_GH3 = 36,
+        // Other
+        IDX_RES_HEAT_VAL = 37,
+        IDX_RES_HEAT_RANGE = 39,
+        IDX_RANGE_SW_ERR = 41
+    };
+
+    /**
+     * @brief Addresses 0f calibration registers
+     */
+    enum BMECalibrationRegistersAddresses
+    {
+        // Temperature
+        ADD_T1_LSB = 0xE9,
+        ADD_T1_MSB = 0xEA,
+        ADD_T2_LSB = 0x8A,
+        ADD_T2_MSB = 0x8B,
+        ADD_T3 = 0x8C,
+        // Pressure
+        ADD_P1_LSB = 0x8E,
+        ADD_P1_MSB = 0x8F,
+        ADD_P2_LSB = 0x90,
+        ADD_P2_MSB = 0x91,
+        ADD_P3 = 0x92,
+        ADD_P4_LSB = 0x94,
+        ADD_P4_MSB = 0x95,
+        ADD_P5_LSB = 0x96,
+        ADD_P5_MSB = 0x97,
+        ADD_P6 = 0x99,
+        ADD_P7 = 0x98,
+        ADD_P8_LSB = 0x9C,
+        ADD_P8_MSB = 0x9D,
+        ADD_P9_LSB = 0x9E,
+        ADD_P9_MSB = 0x9F,
+        ADD_P10 = 0xA0,
+        // Humidity
+        ADD_H1_LSB = 0xE2, // 3:0
+        ADD_H1_MSB = 0xE3, 
+        ADD_H2_LSB = 0xE2, // 7:4
+        ADD_H2_MSB = 0xE1,
+        ADD_H3 = 0xE4,
+        ADD_H4 = 0xE5,
+        ADD_H5 = 0xE6,
+        ADD_H6 = 0xE7,
+        ADD_H7 = 0xE8,
+        // Other
+        ADD_GH1 = 0xED,
+        ADD_GH2_LSB = 0xEB,
+        ADD_GH2_MSB = 0xEC,
+        ADD_GH3 = 0xEE,
+        ADD_RES_HEAT_VAL = 0x00,
+        ADD_RES_HEAT_RANGE = 0x02, // 5:4
+        ADD_RANGE_SW_ERR = 0x04
+    };
+
+    /**
      * @brief osrs_x settings
      * Oversampling multipliers for temperature, humidity, pressure
      */
-    enum class OversamplingMultipliers
+    enum OversamplingMultipliers
     {
         osrs_skip = 0,
         osrs_x1 = 1,
@@ -67,7 +168,7 @@ public:
      * @brief filter settings
      * IIR filtering options
      */
-    enum class FilterCoefficients
+    enum FilterCoefficients
     {
         filter_0 = 0,
         filter_1 = 1,
@@ -82,7 +183,7 @@ public:
     /**
      * @brief Heater wait time multipliers
      */
-    enum class HeaterTimeMultipliers
+    enum HeaterTimeMultipliers
     {
         time_x1 = 0,
         time_x4 = 1,
@@ -93,7 +194,7 @@ public:
     /**
      * @brief Possible heater set points
      */
-    enum class HeaterSetPoints
+    enum HeaterSetPoints
     {
         point_0 = 0,
         point_1 = 1,
@@ -111,7 +212,7 @@ public:
     /**
      * @brief Possible wait times in milliseconds between heating and reading of the gas sensor
      */
-    enum class GasWaitMillis
+    enum GasWaitMillis
     {
         millis_0 = 0,
         millis_1 = 1,
@@ -238,14 +339,8 @@ public:
         int16_t par_p9;
         /*! Variable to store calibrated pressure data */
         uint8_t par_p10;
-
-#ifndef BME680_FLOAT_POINT_COMPENSATION
         /*! Variable to store t_fine size */
-        int32_t t_fine;
-#else
-        /*! Variable to store t_fine size */
-        float t_fine;
-#endif
+        double t_fine;
         /*! Variable to store heater resistance range */
         uint8_t res_heat_range;
         /*! Variable to store heater resistance value */
@@ -263,7 +358,7 @@ public:
         // uint8_t current;
 
         // Heater resistance parameters
-        BMECalibrationParameters resistance;
+        // BMECalibrationParameters resistance;
 
         // Heater wait time before measurements, in milliseconds
         // Value boundaries: 0 to 63
@@ -314,16 +409,16 @@ public:
     uint8_t i2cReadDelayMicros = 10;
 
     BMEConfig *config;
+    BMECalibrationParameters *calibration;
 
     /**
      * @brief Calculate heater resistance based on calibration parameters and desired temperature range
      *
-     * @param rParam: The resistance calibration parameters
      * @param targetTemp: The target temperatured (depending on the desired gas)
      * @param ambientTemp: The current ambient temperature (obtained by reading it trough the sensor)
      * @return uint8_t: The calculated heater resistance
      */
-    uint8_t calculateHeaterResistance(BMECalibrationParameters *rParam, double targetTemp, double ambientTemp);
+    uint8_t calculateHeaterResistance(double targetTemp, double ambientTemp);
 
 public:
     /**
@@ -371,14 +466,12 @@ public:
 
     /**
      * @brief Reads calibration parameters from BME680
-     *
-     * @param rParam
      */
-    void readCalibrationParameters(BMECalibrationParameters *rParam);
+    void readCalibrationParameters();
 
     /**
      * @brief Writes a byte of data to the i2c bus
-     * 
+     *
      * @param registerAddress: The address of the BME680's register
      * @param registerData: The data to be written at registerAddress
      */
@@ -386,21 +479,59 @@ public:
 
     /**
      * @brief Reads a byte of data from the i2c bus
-     * 
+     *
      * @param registerAddress: The address of the BME680's register
      * @return uint8_t: The data read from registerAddress
      */
     uint8_t i2c_readByte(uint8_t registerAddress);
 
     /**
-     * @brief Calculates temperature from raw data
+     * @brief Calculates temperature from raw ADC data
      * @note This function was provided by Bosch's Sensor API
-     * 
-     * @param param: The calibration parameters
-     * @param adc_cts: The ADC raw data
-     * @return int16_t: The temperature value in °C
+     *
+     * @param adcValue: The raw ADC data
+     * @return double: The temperature value in °C
      */
-    int16_t calculateTemperature(BMECalibrationParameters *param, uint32_t adc_cts);
+    double calculateTemperature(uint32_t adcValue);
+
+    /**
+     * @brief Calculates humidity from raw ADC data
+     * @note This function was provided by Bosch's Sensor API
+     *
+     * @param adcValue: The raw ADC data
+     * @return uint32_t: The relative humidity value in %
+     */
+    double calculateHumidity(uint32_t adcValue);
+
+    /**
+     * @brief Calculates pressure from raw ADC data
+     * @note This function was provided by Bosch's Sensor API
+     *
+     * @param adcValue: The raw ADC data
+     * @return uint32_t: The pressure value in Pascal
+     */
+    double calculatePressure(uint32_t adcValue);
+
+    /**
+     * @brief Reads raw ADC temperature data
+     *
+     * @return uint32_t: The raw ADC temperature data
+     */
+    uint32_t readRawTemperature();
+
+    /**
+     * @brief Reads raw ADC humidity data
+     *
+     * @return uint32_t: The raw ADC humidity data
+     */
+    uint32_t readRawHumidity();
+
+    /**
+     * @brief Reads raw ADC pressure data
+     *
+     * @return uint32_t: The raw ADC pressure data
+     */
+    uint32_t readRawPressure();
 };
 
 #endif

@@ -1,0 +1,11 @@
+  // Quick start step 2
+  // set gas_wait_0 to 0x59 for 100ms delay
+  //bme680.i2c_writeByte(0x6d, 0x59);
+  // and calculate resistance
+  //uint8_t resistance = bme680.calculateHeaterResistance(300, 25);
+  // write resistance to res_heat_0
+  //bme680.i2c_writeByte(0x63, resistance);
+  // set nb_conv to 0x0 and run_gas to 1
+  //bme680.i2c_writeByte(0x71, 0b00001000);
+  // trigger a forced measurement
+  //bme680.i2c_writeByte(0x74, 0b01111111);

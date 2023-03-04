@@ -26,45 +26,47 @@ void setupOLED();
 
 void setup()
 {
-  setupGPIO();
   setupUART();
+  setupGPIO();
   setupOLED();
+  bme680.begin();
   oled.printScreen(SSD1306::Screens::screen_welcome);
 }
 
 void loop()
 {
-  // reset
-  bme680.i2c_writeByte(0xE0, 255);
-
-  // Quick start step 1
-    // configure oversampling (ctrl_hum, osrs_h x16)
+  // Set humidity oversampling to x16
   bme680.i2c_writeByte(0x72, 0b1110000);
-  // configure oversampling (crtl_meas, mode 0, osrs_t x16, osrs_p x16)
-  bme680.i2c_writeByte(0x74,0b00111111);
+  // Set temperature and pressure oversampling to x16
+  bme680.i2c_writeByte(0x74, 0b00111111);
 
-  // Quick start step 2
-  // set gas_wait_0 to 0x59 for 100ms delay
-  bme680.i2c_writeByte(0x6d, 0x59);
-  // read and calculate resistance
-  BME680::BMECalibrationParameters param;
-  bme680.readCalibrationParameters(&param);
-  uint8_t resistance = bme680.calculateHeaterResistance(&param,300,25);
-  // write resistance to res_heat_0
-  bme680.i2c_writeByte(0x63, resistance);
-  // set nb_conv to 0x0 and run_gas to 1
-  bme680.i2c_writeByte(0x71,0b00001000);
-  // trigger a forced measurement
-  bme680.i2c_writeByte(0x74,0b01111111);
+  // Read temperature
+  uint32_t rawt = bme680.readRawTemperature();
+  double calct = bme680.calculateTemperature(rawt);
 
-  // read temp
-  uint8_t temp_lsb, temp_msb, temp_xlsb;
-  temp_xlsb = bme680.i2c_readByte(0x24);
-  temp_lsb = bme680.i2c_readByte(0x23);
-  temp_msb = bme680.i2c_readByte(0x22);
-  int16_t temp = bme680.calculateTemperature(&param, ((uint32_t) (((uint32_t) temp_msb * 4096) | ((uint32_t) temp_lsb * 16)| ((uint32_t) temp_xlsb / 16))));
-  Serial.println(temp);
-  delay(2000);
+  // Read humidity
+  uint32_t rawh = bme680.readRawHumidity();
+  double calch = bme680.calculateHumidity(rawh);
+
+  // Read pressure
+  uint32_t rawp = bme680.readRawPressure();
+  double calcp = bme680.calculatePressure(rawp);
+
+  // Print readings
+  //Serial.print("Temperature [RAW/CALC]: ");
+  Serial.println(calct);
+  /*Serial.print("/");
+  Serial.print(calct);
+  Serial.println();
+  Serial.print("Humidity [RAW]: ");
+  Serial.print(rawh);
+  Serial.println();
+  Serial.print("Pressure [RAW]: ");
+  Serial.print(rawp);
+  Serial.println();
+  Serial.println();*/
+
+  delay(5);
 }
 
 void setupGPIO()
