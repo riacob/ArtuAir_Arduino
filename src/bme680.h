@@ -12,6 +12,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <EEPROM.h>
 
 class BME680
 {
@@ -146,14 +147,6 @@ public:
         millis_63 = 63
     };
 
-    /*enum class HeatRanges
-    {
-        range_0 = 0,
-        range_1 = 1,
-        range_2 = 2,
-        range_3 = 3
-    };*/
-
     /**
      * @brief Structure containing the data read by the sensor
      */
@@ -199,17 +192,67 @@ public:
      */
     typedef struct
     {
-        // calibration parameters
-        uint8_t par_g1;
-        uint16_t par_g2;
-        uint8_t par_g3;
+        /*! Variable to store calibrated humidity data */
+        uint16_t par_h1;
+        /*! Variable to store calibrated humidity data */
+        uint16_t par_h2;
+        /*! Variable to store calibrated humidity data */
+        int8_t par_h3;
+        /*! Variable to store calibrated humidity data */
+        int8_t par_h4;
+        /*! Variable to store calibrated humidity data */
+        int8_t par_h5;
+        /*! Variable to store calibrated humidity data */
+        uint8_t par_h6;
+        /*! Variable to store calibrated humidity data */
+        int8_t par_h7;
+        /*! Variable to store calibrated gas data */
+        int8_t par_gh1;
+        /*! Variable to store calibrated gas data */
+        int16_t par_gh2;
+        /*! Variable to store calibrated gas data */
+        int8_t par_gh3;
+        /*! Variable to store calibrated temperature data */
+        uint16_t par_t1;
+        /*! Variable to store calibrated temperature data */
+        int16_t par_t2;
+        /*! Variable to store calibrated temperature data */
+        int8_t par_t3;
+        /*! Variable to store calibrated pressure data */
+        uint16_t par_p1;
+        /*! Variable to store calibrated pressure data */
+        int16_t par_p2;
+        /*! Variable to store calibrated pressure data */
+        int8_t par_p3;
+        /*! Variable to store calibrated pressure data */
+        int16_t par_p4;
+        /*! Variable to store calibrated pressure data */
+        int16_t par_p5;
+        /*! Variable to store calibrated pressure data */
+        int8_t par_p6;
+        /*! Variable to store calibrated pressure data */
+        int8_t par_p7;
+        /*! Variable to store calibrated pressure data */
+        int16_t par_p8;
+        /*! Variable to store calibrated pressure data */
+        int16_t par_p9;
+        /*! Variable to store calibrated pressure data */
+        uint8_t par_p10;
 
-        // Heater range
+#ifndef BME680_FLOAT_POINT_COMPENSATION
+        /*! Variable to store t_fine size */
+        int32_t t_fine;
+#else
+        /*! Variable to store t_fine size */
+        float t_fine;
+#endif
+        /*! Variable to store heater resistance range */
         uint8_t res_heat_range;
-
-        // Heater resistance correction factor
-        char res_heat_val;
-    } BMEResistanceParameters;
+        /*! Variable to store heater resistance value */
+        int8_t res_heat_val;
+        /*! Variable to store error range */
+        int8_t range_sw_err;
+    } BMECalibrationParameters;
 
     /**
      * @brief Structure containing heater set points
@@ -220,7 +263,7 @@ public:
         // uint8_t current;
 
         // Heater resistance parameters
-        BMEResistanceParameters resistance;
+        BMECalibrationParameters resistance;
 
         // Heater wait time before measurements, in milliseconds
         // Value boundaries: 0 to 63
@@ -264,8 +307,12 @@ public:
         HeaterSetPoints set_point;
     } BMEConfig;
 
-private:
+    // set to private
+public:
     uint8_t i2cAdd;
+    uint8_t i2cErrno;
+    uint8_t i2cReadDelayMicros = 10;
+
     BMEConfig *config;
 
     /**
@@ -274,9 +321,9 @@ private:
      * @param rParam: The resistance calibration parameters
      * @param targetTemp: The target temperatured (depending on the desired gas)
      * @param ambientTemp: The current ambient temperature (obtained by reading it trough the sensor)
-     * @return float: The calculated heater resistance
+     * @return uint8_t: The calculated heater resistance
      */
-    float calculateHeaterResistance(BMEResistanceParameters *rParam, double targetTemp, double ambientTemp);
+    uint8_t calculateHeaterResistance(BMECalibrationParameters *rParam, double targetTemp, double ambientTemp);
 
 public:
     /**
@@ -285,6 +332,8 @@ public:
      * @param i2cAddress: The I2C address of the BME680 sensor (usually 0x76 or 0x77)
      */
     BME680(uint8_t i2cAddress);
+
+    void begin();
 
     /**
      * @brief Sets a custom configuration
@@ -319,6 +368,39 @@ public:
      * @param data: The sensor's data (will be written at the pointed address)
      */
     void readData(BMEData *data);
+
+    /**
+     * @brief Reads calibration parameters from BME680
+     *
+     * @param rParam
+     */
+    void readCalibrationParameters(BMECalibrationParameters *rParam);
+
+    /**
+     * @brief Writes a byte of data to the i2c bus
+     * 
+     * @param registerAddress: The address of the BME680's register
+     * @param registerData: The data to be written at registerAddress
+     */
+    void i2c_writeByte(uint8_t registerAddress, uint8_t registerData);
+
+    /**
+     * @brief Reads a byte of data from the i2c bus
+     * 
+     * @param registerAddress: The address of the BME680's register
+     * @return uint8_t: The data read from registerAddress
+     */
+    uint8_t i2c_readByte(uint8_t registerAddress);
+
+    /**
+     * @brief Calculates temperature from raw data
+     * @note This function was provided by Bosch's Sensor API
+     * 
+     * @param param: The calibration parameters
+     * @param adc_cts: The ADC raw data
+     * @return int16_t: The temperature value in °C
+     */
+    int16_t calculateTemperature(BMECalibrationParameters *param, uint32_t adc_cts);
 };
 
 #endif
